@@ -77,6 +77,29 @@ db.serialize(() => {
     FOREIGN KEY (groupe_id) REFERENCES Groupe(id)
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS Etape (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    travail_id INTEGER NOT NULL,
+    titre TEXT NOT NULL,
+    description TEXT,
+    ordre INTEGER,
+    progression INTEGER DEFAULT 0,
+    FOREIGN KEY (travail_id) REFERENCES Travail(id)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS SoumissionEtape (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    etape_id INTEGER NOT NULL,
+    coordinateur_id INTEGER NOT NULL,
+    fichier_id INTEGER,
+    dateSoumission TEXT,
+    commentaire TEXT,
+    statut TEXT,
+    FOREIGN KEY (etape_id) REFERENCES Etape(id),
+    FOREIGN KEY (coordinateur_id) REFERENCES Etudiant(id),
+    FOREIGN KEY (fichier_id) REFERENCES Fichier(id)
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS Fichier (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nom TEXT NOT NULL,
@@ -110,6 +133,47 @@ db.serialize(() => {
 
 // Exemples de fonctions CRUD (ajouter, lire, supprimer)
 module.exports = {
+  db,
+  // Professeur
+  createProfesseur: (nom, email, password, cb) => {
+    db.run(
+      "INSERT INTO Professeur (nom, email, password) VALUES (?, ?, ?)",
+      [nom, email, password],
+      cb
+    );
+  },
+  getProfesseurs: (cb) => {
+    db.all("SELECT * FROM Professeur", cb);
+  },
+  // Classe
+  createClasse: (nom, professeur_id, cb) => {
+    db.run(
+      "INSERT INTO Classe (nom, professeur_id) VALUES (?, ?)",
+      [nom, professeur_id],
+      cb
+    );
+  },
+  getClassesByProf: (professeur_id, cb) => {
+    db.all("SELECT * FROM Classe WHERE professeur_id = ?", [professeur_id], cb);
+  },
+  // Groupe
+  createGroupe: (nom, classe_id, cb) => {
+    db.run(
+      "INSERT INTO Groupe (nom, classe_id) VALUES (?, ?)",
+      [nom, classe_id],
+      cb
+    );
+  },
+  getGroupesByClasse: (classe_id, cb) => {
+    db.all("SELECT * FROM Groupe WHERE classe_id = ?", [classe_id], cb);
+  },
+  setCoordinateur: (groupe_id, etudiant_id, cb) => {
+    db.run(
+      "UPDATE Groupe SET coordinateur_id = ? WHERE id = ?",
+      [etudiant_id, groupe_id],
+      cb
+    );
+  },
   db,
   // Professeur
   createProfesseur: (nom, email, password, cb) => {
@@ -216,6 +280,58 @@ module.exports = {
   },
   getTravauxByGroupe: (groupe_id, cb) => {
     db.all("SELECT * FROM Travail WHERE groupe_id = ?", [groupe_id], cb);
+  },
+  // Etapes de travail
+  createEtape: (travail_id, titre, description, ordre, cb) => {
+    db.run(
+      "INSERT INTO Etape (travail_id, titre, description, ordre) VALUES (?, ?, ?, ?)",
+      [travail_id, titre, description, ordre],
+      cb
+    );
+  },
+  getEtapesByTravail: (travail_id, cb) => {
+    db.all(
+      "SELECT * FROM Etape WHERE travail_id = ? ORDER BY ordre ASC",
+      [travail_id],
+      cb
+    );
+  },
+  updateEtapeProgression: (etape_id, progression, cb) => {
+    db.run(
+      "UPDATE Etape SET progression = ? WHERE id = ?",
+      [progression, etape_id],
+      cb
+    );
+  },
+  // Soumissions d'étape
+  createSoumissionEtape: (
+    etape_id,
+    coordinateur_id,
+    fichier_id,
+    dateSoumission,
+    commentaire,
+    statut,
+    cb
+  ) => {
+    db.run(
+      "INSERT INTO SoumissionEtape (etape_id, coordinateur_id, fichier_id, dateSoumission, commentaire, statut) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        etape_id,
+        coordinateur_id,
+        fichier_id,
+        dateSoumission,
+        commentaire,
+        statut,
+      ],
+      cb
+    );
+  },
+  getSoumissionsByEtape: (etape_id, cb) => {
+    db.all(
+      "SELECT * FROM SoumissionEtape WHERE etape_id = ? ORDER BY dateSoumission ASC",
+      [etape_id],
+      cb
+    );
   },
   // Fichiers (pour devoir ou post)
   createFichier: (nom, url, travail_id, post_id, cb) => {

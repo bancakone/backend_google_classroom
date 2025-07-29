@@ -12,6 +12,9 @@ app.use(express.json());
 app.post("/login", authController.login);
 app.post("/register", authController.register);
 
+// Importer et utiliser les routes API principales
+const apiRoutes = require("./routes/apiRoutes");
+app.use("/api", apiRoutes);
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
