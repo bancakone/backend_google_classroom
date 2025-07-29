@@ -1,6 +1,5 @@
 // models/Schemas.js
 // Schéma et accès CRUD SQLite pour le projet Google Classroom
-
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 const dbPath = path.resolve(__dirname, "../database.sqlite");
@@ -134,6 +133,20 @@ db.serialize(() => {
 // Exemples de fonctions CRUD (ajouter, lire, supprimer)
 module.exports = {
   db,
+  // Groupe - CRUD
+  getGroupeById: (id, cb) => {
+    db.get("SELECT * FROM Groupe WHERE id = ?", [id], cb);
+  },
+  updateGroupe: (id, nom, coordinateur_id, progression, cb) => {
+    db.run(
+      "UPDATE Groupe SET nom = ?, coordinateur_id = ?, progression = ? WHERE id = ?",
+      [nom, coordinateur_id, progression, id],
+      cb
+    );
+  },
+  deleteGroupe: (id, cb) => {
+    db.run("DELETE FROM Groupe WHERE id = ?", [id], cb);
+  },
   // Professeur
   createProfesseur: (nom, email, password, cb) => {
     db.run(
@@ -157,10 +170,16 @@ module.exports = {
     db.all("SELECT * FROM Classe WHERE professeur_id = ?", [professeur_id], cb);
   },
   // Groupe
-  createGroupe: (nom, classe_id, cb) => {
+  createGroupe: (
+    nom,
+    classe_id,
+    coordinateur_id = null,
+    progression = null,
+    cb
+  ) => {
     db.run(
-      "INSERT INTO Groupe (nom, classe_id) VALUES (?, ?)",
-      [nom, classe_id],
+      "INSERT INTO Groupe (nom, classe_id, coordinateur_id, progression) VALUES (?, ?, ?, ?)",
+      [nom, classe_id, coordinateur_id, progression],
       cb
     );
   },
@@ -207,6 +226,9 @@ module.exports = {
   },
   getGroupesByClasse: (classe_id, cb) => {
     db.all("SELECT * FROM Groupe WHERE classe_id = ?", [classe_id], cb);
+  },
+  getAllGroupes: (cb) => {
+    db.all("SELECT * FROM Groupe", cb);
   },
   setCoordinateur: (groupe_id, etudiant_id, cb) => {
     db.run(
@@ -372,6 +394,20 @@ module.exports = {
   },
   getCommentairesByTravail: (travail_id, cb) => {
     db.all("SELECT * FROM Commentaire WHERE travail_id = ?", [travail_id], cb);
+  },
+  // Groupe - CRUD
+  getGroupeById: (id, cb) => {
+    db.get("SELECT * FROM Groupe WHERE id = ?", [id], cb);
+  },
+  updateGroupe: (id, nom, coordinateur_id, progression, cb) => {
+    db.run(
+      "UPDATE Groupe SET nom = ?, coordinateur_id = ?, progression = ? WHERE id = ?",
+      [nom, coordinateur_id, progression, id],
+      cb
+    );
+  },
+  deleteGroupe: (id, cb) => {
+    db.run("DELETE FROM Groupe WHERE id = ?", [id], cb);
   },
   // Statuts progression
   StatutProgression: [

@@ -1,3 +1,38 @@
+// Lister tous les groupes
+router.get("/groupes", (req, res) => {
+  getAllGroupes((err, rows) => {
+    if (err) return res.status(500).json({ message: "Erreur" });
+    res.json(rows);
+  });
+});
+// GROUPE CRUD
+router.get("/groupe/:id", (req, res) => {
+  const { id } = req.params;
+  getGroupeById(id, (err, row) => {
+    if (err) return res.status(500).json({ message: "Erreur" });
+    if (!row) return res.status(404).json({ message: "Groupe non trouvé" });
+    res.json(row);
+  });
+});
+
+router.put("/groupe/:id", (req, res) => {
+  const { id } = req.params;
+  const { nom, coordinateur_id, progression } = req.body;
+  updateGroupe(id, nom, coordinateur_id, progression, function (err) {
+    if (err)
+      return res.status(500).json({ message: "Erreur modification groupe" });
+    res.json({ message: "Groupe modifié" });
+  });
+});
+
+router.delete("/groupe/:id", (req, res) => {
+  const { id } = req.params;
+  deleteGroupe(id, function (err) {
+    if (err)
+      return res.status(500).json({ message: "Erreur suppression groupe" });
+    res.json({ message: "Groupe supprimé" });
+  });
+});
 const express = require("express");
 const router = express.Router();
 const {
@@ -43,8 +78,13 @@ router.get("/classes/:professeur_id", (req, res) => {
 
 // GROUPE
 router.post("/groupe", (req, res) => {
-  const { nom, classe_id } = req.body;
-  createGroupe(nom, classe_id, function (err) {
+  const {
+    nom,
+    classe_id,
+    coordinateur_id = null,
+    progression = null,
+  } = req.body;
+  createGroupe(nom, classe_id, coordinateur_id, progression, function (err) {
     if (err) return res.status(500).json({ message: "Erreur création groupe" });
     res.json({ message: "Groupe créé" });
   });
